@@ -1,0 +1,44 @@
+[
+  {
+    "id": "geveze",
+    "name": "Geveze",
+    "host": "irc.geveze.org",
+    "port": 6667,
+    "ssl": false,
+    "nick": "GencYakisikli21",
+    "password": "",
+    "channels": [
+      "#sohbet",
+      "#geveze"
+    ],
+    "autoConnect": true
+  },
+  {
+    "id": "trsohbet",
+    "name": "TrSohbet",
+    "host": "irc.trsohbet.com",
+    "port": 6667,
+    "ssl": false,
+    "nick": "GencYakisikli21",
+    "password": "",
+    "channels": [
+      "#sohbet",
+      "#trsohbet"
+    ],
+    "autoConnect": true
+  },
+  {
+    "id": "mirc_tr",
+    "name": "mIRC TR",
+    "host": "irc.mirc.com.tr",
+    "port": 6667,
+    "ssl": false,
+    "nick": "GencYakisikli21",
+    "password": "",
+    "channels": [
+      "#sohbet",
+      "#mynet_sohbet"
+    ],
+    "autoConnect": true
+  }
+]

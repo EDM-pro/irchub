@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>IRCHub Teams - Modern Çoklu IRC İstemcisi</title>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1e1e24">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+<div id="app">
+  <!-- 1. En Sol: Sunucu Barı -->
+  <aside class="server-bar" id="serverBar">
+    <div id="serverIconsContainer" class="server-icons-list">
+      <!-- Sunucu ikonları JS ile doldurulur -->
+    </div>
+    <button class="server-icon add-server-btn" id="openAddServerBtn" title="Yeni Sunucu Ekle">+</button>
+  </aside>
+
+  <!-- 2. Sol Menü: Kanallar ve Özel Mesajlar -->
+  <aside class="channel-sidebar" id="channelSidebar">
+    <div class="server-header">
+      <div class="server-title-row">
+        <span class="server-title" id="activeServerName">Sunucu Seçin</span>
+        <button class="server-settings-btn" id="editServerBtn" title="Sunucu Ayarları">⚙️</button>
+      </div>
+
+      <div class="server-nick-row">
+        <span class="nick-label">Rumuz:</span>
+        <span class="nick-pill" id="activeServerNick" title="Rumuzunuzu değiştirmek için tıklayın">-</span>
+        <button class="edit-nick-btn" id="openChangeNickBtn" title="Rumuz Değiştir">✏️</button>
+      </div>
+
+      <button class="toggle-connect-btn btn-connect" id="toggleConnectBtn">Bağlan</button>
+    </div>
+
+    <div class="sidebar-scroll">
+      <!-- KANALLAR -->
+      <div class="sidebar-section">
+        <div class="section-header">
+          <span>Kanallar</span>
+          <button class="section-add-btn" id="openJoinChannelModalBtn" title="Yeni Kanala Katıl">+</button>
+        </div>
+        <div class="item-list" id="channelListContainer">
+          <!-- Kanallar JS ile doldurulur -->
+        </div>
+      </div>
+
+      <!-- ÖZEL MESAJLAR (DM) -->
+      <div class="sidebar-section">
+        <div class="section-header">
+          <span>Özel Mesajlar (DM)</span>
+          <button class="section-add-btn" id="openNewDmModalBtn" title="Yeni Özel Mesaj Başlat">+</button>
+        </div>
+        <div class="item-list" id="dmListContainer">
+          <!-- Özel mesajlar JS ile doldurulur -->
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 3. Orta Alan: Ana Sohbet Penceresi -->
+  <main class="chat-container show-mobile-chat" id="chatContainer">
+    <header class="chat-header">
+      <div class="chat-target-info">
+        <span class="chat-target-icon" id="chatTargetIcon">#</span>
+        <div>
+          <div class="chat-target-title" id="chatTargetTitle">Sohbet Seçin</div>
+          <div class="chat-target-desc" id="chatTargetDesc">Sol menüden bir kanal veya özel mesaj seçin</div>
+        </div>
+      </div>
+      <div class="chat-actions">
+        <button class="action-btn" id="phoneLinkBtn" title="Telefondan Bağlan">📱 Telefon Linki</button>
+        <button class="action-btn" id="themeToggleBtn" title="Açık/Koyu Tema">🌙 Tema</button>
+        <button class="action-btn" id="toggleUsersBtn" title="Kullanıcı Listesi">👥 Kişiler</button>
+      </div>
+    </header>
+
+    <div class="messages-list" id="messagesList">
+      <!-- Mesajlar JS ile listelenir -->
+    </div>
+
+    <footer class="chat-input-bar">
+      <div class="input-container">
+        <input type="text" class="chat-input" id="chatInput" placeholder="Mesajınızı yazın ve Enter'a basın..." autocomplete="off">
+        <button class="send-btn" id="sendMsgBtn">Gönder</button>
+      </div>
+
+      <div class="input-actions-row">
+        <!-- Hızlı Emojiler -->
+        <div class="quick-emojis">
+          <span class="quick-emoji" title="Gülümseme">😊</span>
+          <span class="quick-emoji" title="Beğeni">👍</span>
+          <span class="quick-emoji" title="Kalp">❤️</span>
+          <span class="quick-emoji" title="Kahkaha">😂</span>
+          <span class="quick-emoji" title="El sallama">👋</span>
+          <span class="quick-emoji" title="Ateş">🔥</span>
+          <span class="quick-emoji" title="Gül">🌹</span>
+          <span class="quick-emoji" title="Üzgün">😢</span>
+          <span class="quick-emoji" title="Ağlama">😭</span>
+          <span class="quick-emoji" title="Utanma">😳</span>
+          <span class="quick-emoji" title="Göz devirme">🙄</span>
+          <span class="quick-emoji" title="Esneyen">🥱</span>
+          <span class="quick-emoji" title="Öpücük">😘</span>
+          <span class="quick-emoji" title="Kutlama">🎉</span>
+        </div>
+
+        <!-- Yazı Rengi Seçici (mIRC Renk Kodları) -->
+        <div class="color-picker-bar">
+          <span class="color-picker-label">Yazı Rengi:</span>
+          <div class="color-dot active" data-color="" title="Varsayılan (Normal)" style="background:#8e9297;"></div>
+          <div class="color-dot" data-color="04" data-hex="#ef4444" title="Kırmızı" style="background:#ef4444;"></div>
+          <div class="color-dot" data-color="12" data-hex="#3b82f6" title="Mavi" style="background:#3b82f6;"></div>
+          <div class="color-dot" data-color="03" data-hex="#22c55e" title="Yeşil" style="background:#22c55e;"></div>
+          <div class="color-dot" data-color="06" data-hex="#a855f7" title="Mor" style="background:#a855f7;"></div>
+          <div class="color-dot" data-color="07" data-hex="#f97316" title="Turuncu" style="background:#f97316;"></div>
+          <div class="color-dot" data-color="13" data-hex="#ec4899" title="Pembe" style="background:#ec4899;"></div>
+          <div class="color-dot" data-color="10" data-hex="#06b6d4" title="Turkuaz" style="background:#06b6d4;"></div>
+          <div class="color-dot" data-color="08" data-hex="#eab308" title="Sarı" style="background:#eab308;"></div>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- 4. Sağ Taraf: Çevrim İçi Kullanıcılar Listesi -->
+  <aside class="user-sidebar" id="userSidebar">
+    <div class="user-sidebar-header">
+      <div class="user-header-title-row">
+        <span class="user-header-title" id="usersHeaderTitle">Kullanıcılar</span>
+        <button class="user-close-btn" id="closeUsersSidebarBtn" title="Kapat">✕</button>
+      </div>
+      <input type="text" class="user-search-input" id="userSearchInput" placeholder="Kullanıcı ara...">
+    </div>
+    <div class="user-list-scroll" id="userListScroll">
+      <!-- Kullanıcılar JS ile listelenir -->
+    </div>
+  </aside>
+</div>
+
+<!-- Mobil Alt Gezinme Barı (Telefonlar için) -->
+<nav class="mobile-nav-bar" id="mobileNavBar">
+  <div class="mobile-nav-item" id="navBtnServers">
+    <span class="nav-icon">🌐</span>
+    <span>Sunucular</span>
+  </div>
+  <div class="mobile-nav-item" id="navBtnChats">
+    <span class="nav-icon">💬</span>
+    <span>Kanallar</span>
+  </div>
+  <div class="mobile-nav-item active" id="navBtnMessage">
+    <span class="nav-icon">✉️</span>
+    <span>Sohbet</span>
+  </div>
+  <div class="mobile-nav-item" id="navBtnUsers">
+    <span class="nav-icon">👥</span>
+    <span>Kişiler</span>
+  </div>
+</nav>
+
+<!-- MODAL: Rumuz Değiştir -->
+<div class="modal-overlay" id="nickModal" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">Rumuz (Nick) Değiştir</h3>
+      <button class="modal-close-btn" id="closeNickModalBtn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="newNickInput">Yeni Rumuz:</label>
+        <input type="text" id="newNickInput" placeholder="Örn: MaviKorsan" maxlength="15">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="cancelNickModalBtn">İptal</button>
+      <button class="btn-primary" id="saveNickBtn">Rumu Değiştir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Yeni Özel Mesaj Başlat -->
+<div class="modal-overlay" id="newDmModal" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">Yeni Özel Mesaj Başlat</h3>
+      <button class="modal-close-btn" id="closeNewDmModalBtn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="newDmNickInput">Mesaj Gönderilecek Rumuz:</label>
+        <input type="text" id="newDmNickInput" placeholder="Kişinin rumuzunu yazın..." maxlength="20">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="cancelNewDmModalBtn">İptal</button>
+      <button class="btn-primary" id="startNewDmBtn">Sohbeti Aç</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Yeni Kanala Katıl -->
+<div class="modal-overlay" id="joinChannelModal" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">Yeni Kanala Katıl</h3>
+      <button class="modal-close-btn" id="closeJoinChannelModalBtn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="channelNameInput">Kanal Adı:</label>
+        <input type="text" id="channelNameInput" placeholder="#sohbet, #muhabbet, #oyun...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="cancelJoinChannelModalBtn">İptal</button>
+      <button class="btn-primary" id="confirmJoinChannelBtn">Kanala Gir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Sunucu Ekle / Düzenle -->
+<div class="modal-overlay" id="serverModal" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title" id="serverModalTitle">Sunucu Ekle / Düzenle</h3>
+      <button class="modal-close-btn" id="closeServerModalBtn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="serverFormId">
+      <div class="form-group">
+        <label for="serverFormName">Sunucu Adı:</label>
+        <input type="text" id="serverFormName" placeholder="Örn: Geveze, TrSohbet">
+      </div>
+      <div class="form-group">
+        <label for="serverFormHost">Sunucu Adresi (Host):</label>
+        <input type="text" id="serverFormHost" placeholder="Örn: irc.geveze.org">
+      </div>
+      <div style="display:flex; gap:10px;">
+        <div class="form-group" style="flex:1;">
+          <label for="serverFormPort">Port:</label>
+          <input type="number" id="serverFormPort" value="6667">
+        </div>
+        <div class="form-group" style="flex:1; justify-content:center; padding-top:20px;">
+          <label style="display:flex; align-items:center; gap:6px; cursor:pointer; text-transform:none;">
+            <input type="checkbox" id="serverFormSsl">
+            <span>SSL / Güvenli</span>
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="serverFormNick">Varsayılan Rumuz:</label>
+        <input type="text" id="serverFormNick" placeholder="Rumuzunuz">
+      </div>
+      <div class="form-group">
+        <label for="serverFormPass">NickServ Şifresi (Varsa):</label>
+        <input type="password" id="serverFormPass" placeholder="Kayıtlı rumuz şifreniz">
+      </div>
+      <div class="form-group">
+        <label for="serverFormChannels">Otomatik Girilecek Kanallar (virgülle ayırın):</label>
+        <input type="text" id="serverFormChannels" placeholder="#sohbet, #geveze">
+      </div>
+      <div class="form-group">
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; text-transform:none;">
+          <input type="checkbox" id="serverFormAutoConnect" checked>
+          <span>Açılışta Otomatik Bağlan</span>
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between;">
+      <button class="btn-secondary" id="deleteServerBtn" style="color:var(--danger); border-color:var(--danger); display:none;">Sil</button>
+      <div style="display:flex; gap:10px;">
+        <button class="btn-secondary" id="cancelServerModalBtn">İptal</button>
+        <button class="btn-primary" id="saveServerBtn">Kaydet</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Telefon Giriş Linki -->
+<div class="modal-overlay" id="phoneModal" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">📱 Telefondan Giriş (Mobil Veri & Wi-Fi)</h3>
+      <button class="modal-close-btn" id="closePhoneModalBtn">&times;</button>
+    </div>
+    <div class="modal-body" style="text-align:center;">
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">
+        Telefonunuzun tarayıcısına (Chrome veya Safari) aşağıdaki adresi yazarak doğrudan bağlanabilirsiniz:
+      </p>
+      <div style="background:var(--bg-chat); padding:12px; border-radius:8px; border:1px solid var(--border-color); font-size:15px; font-weight:700; color:var(--accent); word-break:break-all;" id="phoneUrlText">
+        Yükleniyor...
+      </div>
+      <button class="btn-primary" id="copyPhoneUrlBtn" style="margin-top:12px; width:100%;">Linki Kopyala</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" id="cancelPhoneModalBtn">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>
